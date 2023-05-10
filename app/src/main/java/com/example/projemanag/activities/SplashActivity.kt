@@ -1,19 +1,21 @@
-package com.example.projemanag
+package com.example.projemanag.activities
 
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.view.WindowInsets
 import android.view.WindowManager
-import com.example.projemanag.databinding.ActivityIntroBinding
+import com.example.projemanag.databinding.ActivitySplashBinding
 
-class IntroActivity : AppCompatActivity() {
-    private var binding: ActivityIntroBinding? = null
+class SplashActivity : AppCompatActivity() {
+    private var binding: ActivitySplashBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityIntroBinding.inflate(layoutInflater)
+        binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding?.root)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -26,13 +28,13 @@ class IntroActivity : AppCompatActivity() {
             )
         }
 
-        binding?.btnSignUpIntro?.setOnClickListener {
-            startActivity(Intent(this, SignUpActivity::class.java))
-        }
+        val typeFace: Typeface = Typeface.createFromAsset(assets, "carbon bl.ttf")
+        binding?.tvAppName?.typeface = typeFace
 
-        binding?.btnSignInIntro?.setOnClickListener {
-            startActivity(Intent(this, SignInActivity::class.java))
-        }
+        Handler().postDelayed({
+            startActivity(Intent(this, IntroActivity::class.java))
+            finish()
+        }, 2500)
 
     }
 }
