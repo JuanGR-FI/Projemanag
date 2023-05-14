@@ -11,4 +11,7 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+    <style name="Theme.Projemanag.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"></style>
+    <style name="Theme.Projemanag.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"></style>
+
 </resources>
