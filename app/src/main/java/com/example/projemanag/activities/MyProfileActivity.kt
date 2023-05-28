@@ -20,6 +20,7 @@ import com.bumptech.glide.Glide
 import com.example.projemanag.R
 import com.example.projemanag.firebase.FirestoreClass
 import com.example.projemanag.models.User
+import com.example.projemanag.utils.Constants
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import de.hdodenhof.circleimageview.CircleImageView
@@ -33,8 +34,8 @@ class MyProfileActivity : BaseActivity() {
     }
 
     private var mSelectedImageFileUri: Uri? = null
+    private lateinit var mUserDetails: User
     private var mProfileImageURL: String = ""
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +62,9 @@ class MyProfileActivity : BaseActivity() {
         btnUpdate.setOnClickListener {
             if(mSelectedImageFileUri != null){
                 uploadUserImage()
+            }else{
+                showProgressDialog(resources.getString(R.string.please_wait))
+                updateUserProfileData()
             }
         }
 
@@ -130,6 +134,7 @@ class MyProfileActivity : BaseActivity() {
     }
 
     fun setUserDataInUI(user: User){
+        mUserDetails = user
         val userImage = findViewById<CircleImageView>(R.id.iv_profile_user_image)
         Glide
             .with(this@MyProfileActivity)
@@ -143,6 +148,28 @@ class MyProfileActivity : BaseActivity() {
         if(user.mobile != 0L){
             findViewById<EditText>(R.id.et_mobile).setText(user.mobile.toString())
         }
+
+    }
+
+    private fun updateUserProfileData(){
+        val userHashMap = HashMap<String, Any>()
+        val etName = findViewById<EditText>(R.id.et_name)
+        val etMobile = findViewById<EditText>(R.id.et_mobile)
+
+
+        if(mProfileImageURL.isNotEmpty() && mProfileImageURL != mUserDetails.image){
+            userHashMap[Constants.IMAGE] = mProfileImageURL
+        }
+
+        if(etName.text.toString() != mUserDetails.name){
+            userHashMap[Constants.NAME] = etName.text.toString()
+        }
+
+        if(etMobile.text.toString() != mUserDetails.mobile.toString()){
+            userHashMap[Constants.MOBILE] = etMobile.text.toString().toLong()
+        }
+
+        FirestoreClass().updateUserProfileData(this, userHashMap)
 
     }
 
@@ -161,7 +188,7 @@ class MyProfileActivity : BaseActivity() {
                         Log.i("Firebase Image URL", uri.toString())
                     mProfileImageURL = uri.toString()
 
-                    hideProgressDialog()
+                    updateUserProfileData()
                 }
 
             }.addOnFailureListener {
@@ -178,6 +205,12 @@ class MyProfileActivity : BaseActivity() {
 
     private fun getFileExtension(uri: Uri?): String?{
         return MimeTypeMap.getSingleton().getExtensionFromMimeType(contentResolver.getType(uri!!))
+    }
+
+    fun profileUpdateSuccess(){
+        hideProgressDialog()
+        setResult(Activity.RESULT_OK)
+        finish()
     }
 
 }
