@@ -3,10 +3,12 @@ package com.example.projemanag.firebase
 import android.app.Activity
 import android.util.Log
 import android.widget.Toast
+import com.example.projemanag.activities.CreateBoardActivity
 import com.example.projemanag.activities.MainActivity
 import com.example.projemanag.activities.MyProfileActivity
 import com.example.projemanag.activities.SignInActivity
 import com.example.projemanag.activities.SignUpActivity
+import com.example.projemanag.models.Board
 import com.example.projemanag.models.User
 import com.example.projemanag.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
@@ -28,6 +30,44 @@ class FirestoreClass {
             }
     }
 
+    fun createBoard(activity: CreateBoardActivity, board: Board){
+        mFirestore.collection(Constants.BOARDS)
+            .document()
+            .set(board, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.e(activity.javaClass.simpleName, "Board created successfully")
+                Toast.makeText(activity, "Board created successfully.", Toast.LENGTH_SHORT).show()
+                activity.boardCreatedSuccessfully()
+            }.addOnFailureListener {
+                e->
+                activity.hideProgressDialog()
+                Log.e(activity.javaClass.simpleName, "Error while creating a board.", e)
+            }
+    }
+
+    fun getBoardsList(activity: MainActivity){
+        mFirestore.collection(Constants.BOARDS)
+            .whereArrayContains(Constants.ASSIGNED_TO, getCurrentUserId())
+            .get()
+            .addOnSuccessListener {
+                document ->
+                Log.i(activity.javaClass.simpleName, document.documents.toString())
+                val boardList: ArrayList<Board> = ArrayList()
+                for(i in document.documents){
+                    val board = i.toObject(Board::class.java)!!
+                    board.documentId = i.id
+                    boardList.add(board)
+                }
+
+                activity.populateBoardsListToUI(boardList)
+            }.addOnFailureListener {
+                e ->
+                activity.hideProgressDialog()
+                Log.e(activity.javaClass.simpleName, "Error while creating a board.", e)
+            }
+    }
+
+
     fun updateUserProfileData(activity: MyProfileActivity, userHashMap: HashMap<String, Any>){
         mFirestore.collection(Constants.USERS)
             .document(getCurrentUserId())
@@ -44,7 +84,7 @@ class FirestoreClass {
             }
     }
 
-    fun loadUserData(activity: Activity){
+    fun loadUserData(activity: Activity, readBoardsList: Boolean = false){
         mFirestore.collection(Constants.USERS)
             .document(getCurrentUserId())
             .get()
@@ -57,7 +97,7 @@ class FirestoreClass {
 
                         }
                         is MainActivity -> {
-                            activity.updateNavigationUserDetails(loggedInUser)
+                            activity.updateNavigationUserDetails(loggedInUser, readBoardsList)
                         }
                         is MyProfileActivity -> {
                             activity.setUserDataInUI(loggedInUser)
