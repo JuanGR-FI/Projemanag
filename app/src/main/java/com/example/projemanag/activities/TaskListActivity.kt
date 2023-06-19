@@ -3,9 +3,13 @@ package com.example.projemanag.activities
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.widget.Toolbar
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.projemanag.R
+import com.example.projemanag.adapters.TaskListItemsAdapter
 import com.example.projemanag.firebase.FirestoreClass
 import com.example.projemanag.models.Board
+import com.example.projemanag.models.Task
 import com.example.projemanag.utils.Constants
 
 class TaskListActivity : BaseActivity() {
@@ -42,5 +46,17 @@ class TaskListActivity : BaseActivity() {
     fun boardDetails(board: Board){
         hideProgressDialog()
         setupActionBar(board.name)
+
+        val addTaskList = Task(resources.getString(R.string.add_list))
+        board.taskList.add(addTaskList)
+
+        val rvTaskList = findViewById<RecyclerView>(R.id.rv_task_list)
+
+        rvTaskList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvTaskList.setHasFixedSize(true)
+
+        val adapter = TaskListItemsAdapter(this, board.taskList)
+        rvTaskList.adapter = adapter
+
     }
 }
