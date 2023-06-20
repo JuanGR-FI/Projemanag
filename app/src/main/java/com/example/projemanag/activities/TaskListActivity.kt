@@ -13,6 +13,9 @@ import com.example.projemanag.models.Task
 import com.example.projemanag.utils.Constants
 
 class TaskListActivity : BaseActivity() {
+
+    private lateinit var mBoardDetails : Board
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task_list)
@@ -26,7 +29,7 @@ class TaskListActivity : BaseActivity() {
         FirestoreClass().getBoardDetails(this, boardDocumentId)
     }
 
-    private fun setupActionBar(title: String){
+    private fun setupActionBar(){
         val toolbarTaskList = findViewById<Toolbar>(R.id.toolbar_task_list_activity)
         setSupportActionBar(toolbarTaskList)
 
@@ -34,7 +37,7 @@ class TaskListActivity : BaseActivity() {
         if(actionBar != null){
             actionBar.setDisplayHomeAsUpEnabled(true)
             actionBar.setHomeAsUpIndicator(R.drawable.ic_white_color_back_24dp)
-            actionBar.title = title
+            actionBar.title = mBoardDetails.name
         }
 
         toolbarTaskList.setNavigationOnClickListener {
@@ -44,8 +47,10 @@ class TaskListActivity : BaseActivity() {
     }
 
     fun boardDetails(board: Board){
+        mBoardDetails = board
+
         hideProgressDialog()
-        setupActionBar(board.name)
+        setupActionBar()
 
         val addTaskList = Task(resources.getString(R.string.add_list))
         board.taskList.add(addTaskList)
@@ -59,4 +64,21 @@ class TaskListActivity : BaseActivity() {
         rvTaskList.adapter = adapter
 
     }
+
+    fun addUpdateTaskListSuccess(){
+        hideProgressDialog()
+
+        showProgressDialog(resources.getString(R.string.please_wait))
+        FirestoreClass().getBoardDetails(this, mBoardDetails.documentId)
+    }
+
+    fun createTaskList(taskListName: String){
+        val task = Task(taskListName, FirestoreClass().getCurrentUserId())
+        mBoardDetails.taskList.add(0, task)
+        mBoardDetails.taskList.removeAt(mBoardDetails.taskList.size - 1)
+
+        showProgressDialog(resources.getString(R.string.please_wait))
+        FirestoreClass().addUpdateTaskList(this, mBoardDetails)
+    }
+
 }
