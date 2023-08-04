@@ -121,7 +121,6 @@ class MyProfileActivity : BaseActivity() {
         toolbarMyProfile.setNavigationOnClickListener {
             onBackPressed()
         }
-
     }
 
     fun setUserDataInUI(user: User){

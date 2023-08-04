@@ -3,12 +3,7 @@ package com.example.projemanag.firebase
 import android.app.Activity
 import android.util.Log
 import android.widget.Toast
-import com.example.projemanag.activities.CreateBoardActivity
-import com.example.projemanag.activities.MainActivity
-import com.example.projemanag.activities.MyProfileActivity
-import com.example.projemanag.activities.SignInActivity
-import com.example.projemanag.activities.SignUpActivity
-import com.example.projemanag.activities.TaskListActivity
+import com.example.projemanag.activities.*
 import com.example.projemanag.models.Board
 import com.example.projemanag.models.User
 import com.example.projemanag.utils.Constants
@@ -170,6 +165,66 @@ class FirestoreClass {
 
         return currentUserID
 
+    }
+
+    fun getAssignedMembersListDetails(activity: MembersActivity, assignedTo: ArrayList<String>){
+        mFirestore.collection(Constants.USERS)
+            .whereIn(Constants.ID, assignedTo)
+            .get()
+            .addOnSuccessListener{
+                document -> Log.e(activity.javaClass.simpleName, document.documents.toString())
+
+                val usersList: ArrayList<User> = ArrayList()
+
+                for(i in document.documents){
+                    val user = i.toObject(User::class.java)!!
+                    usersList.add(user)
+                }
+
+                activity.setupMembersList(usersList)
+            }.addOnFailureListener {
+                e ->
+                activity.hideProgressDialog()
+                Log.e(activity.javaClass.simpleName, "Error while getting members", e)
+            }
+    }
+
+    fun getMemberDetails(activity: MembersActivity, email: String){
+        mFirestore.collection(Constants.USERS)
+            .whereEqualTo(Constants.EMAIL, email)
+            .get()
+            .addOnSuccessListener {
+                document ->
+                if(document.documents.size > 0){
+                    val user = document.documents[0].toObject(User::class.java)!!
+                    activity.memberDetails(user)
+                }else{
+                    activity.hideProgressDialog()
+                    activity.showErrorSnackBar("No such member found")
+                }
+            }
+            .addOnFailureListener {
+                    e ->
+                activity.hideProgressDialog()
+                Log.e(activity.javaClass.simpleName, "Error while getting user details", e)
+            }
+    }
+
+    fun assignMemberToBoard(activity: MembersActivity, board: Board, user: User){
+        val assignedToHashMap = HashMap<String, Any>()
+        assignedToHashMap[Constants.ASSIGNED_TO] = board.assignedTo
+
+        mFirestore.collection(Constants.BOARDS)
+            .document(board.documentId)
+            .update(assignedToHashMap)
+            .addOnSuccessListener {
+                activity.memberAssignSuccess(user)
+            }
+            .addOnFailureListener {
+                    e ->
+                activity.hideProgressDialog()
+                Log.e(activity.javaClass.simpleName, "Error while getting user details", e)
+            }
     }
 
 }
