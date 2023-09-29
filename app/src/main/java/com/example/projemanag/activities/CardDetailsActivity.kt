@@ -14,6 +14,7 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.Toolbar
 import com.example.projemanag.R
 import com.example.projemanag.dialogs.LabelColorListDialog
+import com.example.projemanag.dialogs.MembersListDialog
 import com.example.projemanag.firebase.FirestoreClass
 import com.example.projemanag.models.Board
 import com.example.projemanag.models.Card
@@ -56,6 +57,11 @@ class CardDetailsActivity : BaseActivity() {
         findViewById<TextView>(R.id.tv_select_label_color).setOnClickListener {
             labelColorsListDialog()
         }
+
+        findViewById<TextView>(R.id.tv_select_members).setOnClickListener {
+            membersListDialog()
+        }
+
     }
 
     fun addUpdateTaskListSuccess(){
@@ -130,6 +136,37 @@ class CardDetailsActivity : BaseActivity() {
         if(intent.hasExtra(Constants.BOARD_MEMBERS_LIST)){
             mMembersDetailList = intent.getParcelableArrayListExtra(Constants.BOARD_MEMBERS_LIST)!!
         }
+    }
+
+    private fun membersListDialog() {
+        var cardAssignedMembersList = mBoardDetails.taskList[mTaskListPosition].cards[mCardPosition].assignedTo
+
+        if(cardAssignedMembersList.size > 0){
+            for(i in mMembersDetailList.indices){
+                for(j in cardAssignedMembersList){
+                    if(mMembersDetailList[i].id == j){
+                        mMembersDetailList[i].selected = true
+                    }
+                }
+            }
+        }else {
+            for(i in mMembersDetailList.indices){
+                mMembersDetailList[i].selected = false
+            }
+        }
+
+        val listDialog = object: MembersListDialog(
+            this,
+            mMembersDetailList,
+            resources.getString(R.string.str_select_member),
+        ){
+            override fun onItemSelected(user: User, action: String) {
+                // TODO implement the selected Members functionality
+            }
+
+        }
+        listDialog.show()
+
     }
 
     private fun updateCardDetails(){
