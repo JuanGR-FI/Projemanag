@@ -286,7 +286,7 @@ class CardDetailsActivity : BaseActivity() {
             findViewById<TextView>(R.id.tv_select_members).visibility = View.GONE
             findViewById<RecyclerView>(R.id.rv_selected_members_list).visibility = View.VISIBLE
 
-            val myAdapter = CardMemberListItemsAdapter(this, selectedMembersList)
+            val myAdapter = CardMemberListItemsAdapter(this, selectedMembersList, true)
 
             findViewById<RecyclerView>(R.id.rv_selected_members_list).apply {
                 layoutManager = GridLayoutManager(this@CardDetailsActivity, 6)
