@@ -11,22 +11,29 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.projemanag.R
 import com.example.projemanag.activities.MainActivity
+import com.example.projemanag.activities.SignInActivity
+import com.example.projemanag.firebase.FirestoreClass
+import com.example.projemanag.utils.Constants
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.firebase.messaging.remoteMessage
 
 class MyFirebaseMessagingService: FirebaseMessagingService() {
 
-    override fun onMessageReceived(message: RemoteMessage) {
-        super.onMessageReceived(message)
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        super.onMessageReceived(remoteMessage)
 
-        Log.d(TAG, "FROM: ${message.from}")
+        Log.d(TAG, "FROM: ${remoteMessage.from}")
 
-        message.data.isNotEmpty().let{
-            Log.d(TAG, "Message data Payload: ${message.data}")
+        remoteMessage.data.isNotEmpty().let{
+            Log.d(TAG, "Message data Payload: ${remoteMessage.data}")
+            val title = remoteMessage.data[Constants.FCM_KEY_TITLE]!!
+            val message = remoteMessage.data[Constants.FCM_KEY_MESSAGE]!!
+
+            sendNotification(title, message)
         }
 
-        message.notification?.let{
+        remoteMessage.notification?.let{
             Log.d(TAG, "Message Notification Body: ${it.body}")
         }
 
@@ -42,16 +49,21 @@ class MyFirebaseMessagingService: FirebaseMessagingService() {
         // Implement
     }
 
-    private fun sendNotification(messageBody: String) {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+    private fun sendNotification(title: String, message: String) {
+        val intent = if(FirestoreClass().getCurrentUserId().isNotEmpty()) {
+            Intent(this, MainActivity::class.java)
+        }else{
+            Intent(this, SignInActivity::class.java)
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or
+            Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
         val channelId = this.resources.getString(R.string.default_notification_channel_id)
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_stat_ic_notification)
-            .setContentTitle("Title")
-            .setContentText("Message")
+            .setContentTitle(title)
+            .setContentText(message)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
             .setContentIntent(pendingIntent)
